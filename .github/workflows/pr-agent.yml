@@ -1,0 +1,36 @@
+# .github/workflows/pr-agent.yml
+name: PR Agent (Gemini)
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  issue_comment:
+jobs:
+  pr_agent_job:
+    if: ${{ github.event.sender.type != 'Bot' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+    steps:
+      - name: PR Agent action step
+        uses: qodo-ai/pr-agent@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          config.model: 'gemini/gemini-2.5-flash' # Can be customized to work with any provider
+          config.fallback_models: '["gemini/gemini-2.5-flash"]'
+          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          github_action_config.auto_review: 'true' # review when pr is created
+          github_action_config.auto_describe: 'true' # generate description when PR is created
+          github_action_config.auto_improve: 'false'
+          pr_description.use_description_markers: 'true' # Use our own template
+          pr_description.enable_large_pr_handling: 'true'
+          pr_description.include_generated_by_header: 'false'
+          pr_description.extra_instructions: |
+            Structure the PR summary section as follows:
+              1. Story Link (if a story URL is detected)
+              2. Summary
+              3. Why this solution works
+              4. How to test
+
+            Keep each section concise and clearly separated with markdown headers.
